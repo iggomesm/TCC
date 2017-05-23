@@ -31,7 +31,7 @@ public class Contrato extends TableMaster {
 
 public class ContratoPessoa {
 
-	private Contrato contrato;
+	private Contrato contrato;	
 	private Pessoa pessoa;
 	
 	// gets e sets de delegação do atributos da classe
@@ -50,21 +50,19 @@ public class ContratoPessoa {
 		Statement statement = connection.createStatement();
 		
 		// (3) Realiza requisição de consulta ao banco de dados
-		ResultSet rs = statement.executeQuery("SELECT * FROM PESSOA");
+		ResultSet rs = statement.executeQuery("SELECT * FROM DEPARTAMENTO");
 		
-		List listaPessoa = new ArrayList();
+		List listaDepartamento = new ArrayList();
 		
 		// Percorre o resultado da consulta e monta instâncias de Pessoa.
 		while(rs.next()) {
 			
-			Pessoa pessoa = new Pessoa();
+			Departamento departamento = new Departamento();
 			
-			pessoa.setPess_id(rs.getInt("pess_id"));
-			pessoa.setPess_nome(rs.getString("pess_nome"));
-			pessoa.setPess_nascimento(rs.getTimestamp("pess_nascimento"));
-			pessoa.setPess_rg(rs.getString("pess_rg"));
+			departamento.setDept_id(rs.getInt("dept_id"));
+			departamento.setDept_descricao(rs.getString("dept_descricao"));
 			
-			listaPessoa.add(pessoa);
+			listaDepartamento.add(pessoa);
 		}
 	}
 
@@ -124,7 +122,7 @@ public void exemploPersistênciaDados() {
 }
 
 /**
- * Exemplo de persistência de dados
+ * Exemplo de consulta de dados
  */
 public void exemploConsultaDados() {
 
@@ -324,8 +322,127 @@ public class PessoaDAO extends SigmaDB {
 
 
 
+public class Pessoa extends TableMaster{
+	@PKTableMaster
+    private int pess_id;
+    private int pess_tipo;
+    private String pess_nome;
+    private Timestamp pess_nascimento;
+    private String pess_cpf;
+    private String pess_rg;
+    private int pess_departamento;
+	// gets e sets dos atributos
+	...
+}
+
+public class Departamento extends TableMaster{
+	@PKTableMaster
+    private int dept_id;
+    private String dept_descricao;
+	// gets e sets dos atributos
+	...
+}    
+
+public class Tipo_pessoa extends TableMaster{
+	@PKTableMaster
+	private int tppe_id;
+	private String tppe_descricao;
+	// gets e sets dos atributos
+	...
+}
+
+public class PessoaDepartamento {
+	private Pessoa pessoa = new Pessoa();
+
+	@FkTableMaster(on = "pess_departamento = dept_id")
+	private Departamento departamento = new Departamento();
+
+	// delegação dos métodos dos atributos
+	...
+}
 
 
+private static String url = "DATABASE_URL";
+private static String user = "admin";
+private static String password = "senha_admin";
+
+public void insereDepartamento(Departamento departamento) throws Exception{
+		
+	// (1) Estabelece uma conexão com o banco de dados
+	Connection connection = DriverManager.getConnection(url, user, password);
+
+	// (2) Cria Statement para persistir no banco de dados
+	Statement stmt = con.createStatement();
+		
+	String sql = "insert into Departamento (dpt_descricao) values ('" + departamento.getDept_descricao() + "')";
+	
+	// (3) Persiste dado no banco	
+	stmt.executeUpdate(sql);
+}
+
+public void alteraDepartamento(Departamento departamento) throws Exception{
+		
+	// (1) Estabelece uma conexão com o banco de dados
+	Connection connection = DriverManager.getConnection(url, user, password);
+
+	// (2) Cria Statement para persistir no banco de dados
+	Statement stmt = con.createStatement();
+		
+	String sql = "update Departamento set dept_descricao = '" + departamento.getDept_descricao + "'" +
+				 " where dept_id = " + departamento.gerDept_id();
+	
+	// (3) Persiste dado no banco	
+	stmt.executeUpdate(sql);
+}
+
+public void deletaDepartamento(Departamento departamento) throws Exception{
+		
+	// (1) Estabelece uma conexão com o banco de dados
+	Connection connection = DriverManager.getConnection(url, user, password);
+
+	// (2) Cria Statement para persistir no banco de dados
+	Statement stmt = con.createStatement();
+		
+	String sql = "delete from Departamento where dept_id = " + departamento.gerDept_id();
+	
+	// (3) Persiste dado no banco	
+	stmt.executeUpdate(sql);
+}
+
+
+/**
+ * Exemplo de consulta de dados
+ */
+public void exemploConsultaDados() {
+
+	// Instância da classe
+	SigmaDB sigma = new SigmaDB();
+
+	// Classe que representa um espelho da tabela Pessoa
+	Pessoa pessoa = new Pessoa();
+	pessoa.setPess_nome("Igor Moisés");
+	
+	// Classe que representa um espelho da tabela Departamento
+	Departamento departamento = new Departamento();
+	departamento.setDept_id(1);
+	
+	// Classe que representa um agrupamento da tabela Pessoa e Contrato
+	PessoaDepartamento pessoaDepartamento = new PessoaDepartamento();
+	pessoaDepartamento.setPess_nome("Igor Moisés");
+	pessoaDepartamento.setDept_id(1);
+
+	List<Pessoa> listaPessoa = sigma.pesquisaTabela(pessoa);
+	//SAÍDA: Select * from pessoa where pess_nome = 'Igor Moisés';
+	
+	List<Contrato> listaContrato = sigma.pesquisaTabela(departamento);
+	//SAÍDA: Select * from departamento where dept_id = 1;
+
+	List<PessoaDepartamento> listaJoin = sigma.pesquisaTabela(pessoaDepartamento);
+
+	//SAÍDA: Select * from pessoa
+	//			inner join departamento on dept_id = pess_departamento
+	//		 where dept_id = 1 and pess_nome = 'Igor Moisés';
+}
 
 
 
