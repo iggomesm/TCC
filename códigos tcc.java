@@ -41,18 +41,21 @@ public class ContratoPessoa {
 	private static String url = "DATABASE_URL";
 	private static String user = "admin";
 	private static String password = "senha_admin";
+	private static String driver = "org.postgresql.Driver";
 	
-	public static void main(String[] args) throws Exception {
+	public void consultaDepartamento(String args[], List listaDepartamento) throws Exception {
+
+		String clausulaWhere = montaClausulaWhere(args);
+
 		// (1) Estabelece uma conexão com o banco de dados
+		Class.forName(driver);
 		Connection connection = DriverManager.getConnection(url, user, password);
 
 		// (2) Cria Statement para consultar no banco de dados
 		Statement statement = connection.createStatement();
 		
 		// (3) Realiza requisição de consulta ao banco de dados
-		ResultSet rs = statement.executeQuery("SELECT * FROM DEPARTAMENTO");
-		
-		List listaDepartamento = new ArrayList();
+		ResultSet rs = statement.executeQuery("SELECT * FROM DEPARTAMENTO" + clausulaWhere);
 		
 		// Percorre o resultado da consulta e monta instâncias de Pessoa.
 		while(rs.next()) {
@@ -410,9 +413,7 @@ public void deletaDepartamento(Departamento departamento) throws Exception{
 }
 
 
-/**
- * Exemplo de consulta de dados
- */
+
 public void exemploConsultaDados() {
 
 	// Instância da classe
@@ -440,14 +441,56 @@ public void exemploConsultaDados() {
 	List<PessoaDepartamento> listaJoin = sigma.pesquisaTabela(pessoaDepartamento);
 
 	//SAÍDA: Select * from pessoa
-	//			inner join departamento on dept_id = pess_departamento
+	//			inner join departamento on pess_departamento = dept_id
 	//		 where dept_id = 1 and pess_nome = 'Igor Moisés';
 }
 
 
+public void exemploConsultaDados() {
+
+	// Instância da classe
+	SigmaDB sigma = new SigmaDB();
+
+	// Classe que representa um espelho da tabela Pessoa
+	Pessoa pessoa = new Pessoa();
+	pessoa.setPess_nome("Igor Moisés");
+	
+
+	List<Pessoa> listaPessoa = sigma.pesquisaTabela(pessoa);
+	//SAÍDA: Select * from pessoa where pess_nome = 'Igor Moisés';
+}
+
+
+public void exemploConsultaDados() {
+
+	// Instância da classe
+	SigmaDB sigma = new SigmaDB();
+
+	// Classe que representa um espelho da tabela Pessoa
+	Pessoa pessoa = new Pessoa();
+	pessoa.setPess_nome("Igor Moisés");	
+
+	List<Pessoa> listaPessoa = sigma.pesquisaTabela(pessoa);
+	
+	SAÍDA: Select * from pessoa where pess_nome = 'Igor Moisés';
+}
 
 
 
+public void exemploPersistênciaDados() {
 
+	// Instância da classe
+	SigmaDB sigma = new SigmaDB();
+
+	ConnectionLog connection = sigma.abrirConexaoPersistencia();
+
+	Pessoa pessoa = montaPessoa();
+		
+	// Persiste uma informação de pessoa no banco 
+	(TypeOperation.INSERT, TypeOperation.UPDATE, TypeOperation.DELETE).
+	sigma.applyUpdateTableMaster(pessoa, connection, TypeOperation.INSERT);
+		
+	sigma.concluirConexao(connection);
+}
 
 
